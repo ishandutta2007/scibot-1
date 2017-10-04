@@ -9,12 +9,14 @@ Kevin Trinh (ktrinh1)
 
 import sys
 import os
+from fim import apriori, fpgrowth
 
-if __name__ == '__main__':
+def initializeStructure():
+
 	textFolder		= 'data/text/'
 	microsoftFolder = 'data/microsoft/'
 
-	# Open Index
+	# Open Index ----------------------------------------
 
 	indexFile = open(microsoftFolder + 'index.txt', 'r')
 
@@ -38,7 +40,14 @@ if __name__ == '__main__':
 
 	indexFile.close()
 
-	# Open Papers File
+	# Open Papers File ---------------------------------
+
+	'''
+
+	Note: Some Chinese characters appear in some of the
+	paper titles and they will display weird in the terminal.
+
+	'''
 
 	papersFile = open(microsoftFolder + 'Papers.txt', 'r')
 
@@ -66,28 +75,106 @@ if __name__ == '__main__':
 
 	papersFile.close()
 
-	# Open Paper Keywords File
+	# Open Paper Keywords File ----------------------------
 
 	paperKeywordsFile = open(microsoftFolder + 'PaperKeywords.txt', 'r')
 
 	paperKeywords = {}
 
-	for line in paperKeywords:
+	for line in paperKeywordsFile:
 
 		l = line.split('\t')
 
 		pid 		= l[0]
 		keyword 	= l[1]
 
-		if pid not in paperKeywords.keys():
+		if pid not in paperKeywords:
 			paperKeywords[pid] = []
-		else:
-			paperKeywords[pid].append(keyword)
+	
+		paperKeywords[pid].append(keyword)
 
-	for key, value in paperKeywords:
+	paperKeywordsFile.close()
 
-		print(key)
-		print(value)
+	# Open Affiliations File -------------------------------
+
+	affiliationsFile = open(microsoftFolder + 'PaperAuthorAffiliations.txt', 'r')
+
+	affiliations = {}
+
+	for line in affiliationsFile:
+
+		l = line.rstrip().split('\t')
+
+		pid 		= l[0]
+		aid			= l[1]
+		fid			= l[2]
+		aff 		= l[4]
+		sid			= l[5]
+
+		if pid not in affiliations:
+			affiliations[pid] = []
+
+		affiliation = {}
+		affiliation['aid'] = aid
+		affiliation['fid'] = fid
+		affiliation['aff'] = aff
+		affiliation['sid'] = sid
+
+		affiliations[pid].append(affiliation)
+
+	affiliationsFile.close()
+
+	# Open Authors File --------------------------------------
+
+	authorsFile	= open(microsoftFolder + 'Authors.txt', 'r')
+
+	authors = {}
+
+	for line in authorsFile:
+
+		l = line.rstrip().split('\t')
+
+		aid 	= l[0]
+		aut 	= l[1]
+
+		authors[aid] = aut
+
+	authorsFile.close()
+
+	# Consolidate Data into Papers structure ----------------
+
+	for key, value in papers.items():
+
+		if key in index:
+
+			papers[key]['folderName'] 	= index[key]['folderName']
+			papers[key]['filename']		= index[key]['filename']
+
+		if key in paperKeywords:
+
+			papers[key]['keywords']		= paperKeywords[key]
+
+		if key in affiliations:
+
+			papers[key]['affiliations']	= affiliations[key]
+
+	return papers, authors
+
+if __name__ == '__main__':	
+	papers, authors = initializeStructure()
+
+	textFolder = 'data/text/'
+
+	print (len(papers))
+
+	print (len(authors))
+	#for key, value in papers.items():
+		#paperFile = open(textFolder + value['folderName'] + '/' + value['filename'], 'r')
+
+
+
+
+
 
 
 
