@@ -11,7 +11,7 @@ import sys
 import os
 
 if __name__ == '__main__':
-
+                
 		textFolder		= 'data/text/'
 		microsoftFolder = 'data/microsoft/'
 
@@ -37,7 +37,7 @@ if __name__ == '__main__':
 
 			index[pid]		= i
 
-		indexFle.close()
+		indexFile.close()
 
 		papersFile = open(microsoftFolder + 'Papers.txt', 'r')
 
