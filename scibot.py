@@ -95,7 +95,7 @@ def initializeStructure():
 
 	paperKeywordsFile.close()
 
-	# Open Affiliations File -------------------------------
+	# Open Affiliations File -----------------------------
 
 	affiliationsFile = open(microsoftFolder + 'PaperAuthorAffiliations.txt', 'r')
 
@@ -105,11 +105,11 @@ def initializeStructure():
 
 		l = line.rstrip().split('\t')
 
-		pid 		= l[0]
-		aid			= l[1]
-		fid			= l[2]
-		aff 		= l[4]
-		sid			= l[5]
+		pid = l[0]
+		aid	= l[1]	# author id
+		fid	= l[2]	# affiliation id
+		aff = l[4] 	# normalized affiliation name
+		sid	= l[5]	# authoer sequence number
 
 		if pid not in affiliations:
 			affiliations[pid] = []
@@ -124,7 +124,7 @@ def initializeStructure():
 
 	affiliationsFile.close()
 
-	# Open Authors File --------------------------------------
+	# Open Authors File ------------------------------------
 
 	authorsFile	= open(microsoftFolder + 'Authors.txt', 'r')
 
@@ -134,14 +134,14 @@ def initializeStructure():
 
 		l = line.rstrip().split('\t')
 
-		aid 	= l[0]
-		aut 	= l[1]
+		aid = l[0]
+		aut = l[1]
 
 		authors[aid] = aut
 
 	authorsFile.close()
 
-	# Consolidate Data into Papers structure ----------------
+	# Consolidate Data into Papers ------------------------
 
 	for key, value in papers.items():
 
@@ -160,28 +160,16 @@ def initializeStructure():
 
 	return papers, authors
 
-if __name__ == '__main__':	
+if __name__ == '__main__':
+
 	papers, authors = initializeStructure()
+
+	# print(len(papers))
+	# print(len(authors))
 
 	textFolder = 'data/text/'
 
-	print (len(papers))
+	for key, value in papers.items():
 
-	print (len(authors))
-	#for key, value in papers.items():
-		#paperFile = open(textFolder + value['folderName'] + '/' + value['filename'], 'r')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+		print(key)
+		print(value)
