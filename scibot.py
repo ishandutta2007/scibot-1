@@ -158,11 +158,17 @@ def initializeStructure():
 
 			papers[key]['affiliations']	= affiliations[key]
 
-	return papers, authors
+			for affiliation in papers[key]['affiliations']:
+
+				if affiliation['aid'] in authors:
+
+					affiliation['aut'] = authors[affiliation['aid']]
+
+	return papers
 
 if __name__ == '__main__':
 
-	papers, authors = initializeStructure()
+	papers = initializeStructure()
 
 	# print(len(papers))
 	# print(len(authors))
