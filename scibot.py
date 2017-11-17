@@ -164,14 +164,11 @@ def initializeStructure():
 
 					affiliation['aut'] = authors[affiliation['aid']]
 
-	return papers
+	return papers, authors
 
 if __name__ == '__main__':
 
 	papers = initializeStructure()
-
-	# print(len(papers))
-	# print(len(authors))
 
 	textFolder = 'data/text/'
 
