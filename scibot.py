@@ -166,9 +166,18 @@ def initializeStructure():
 
 	return papers, authors
 
+
+def entityMining(papers):
+	textFolder = 'data/text/'
+	stopwords = open('stopwords.txt', 'r')
+	for key, value in papers.items:
+		if 'foldername' in papers[key] and 'filename' in papers[key]:
+			papers[key]['data'] = []
+			dataFile = open(textFolder + papers[key]['foldername'] + '/' + papers[key]['filename'])
+
 if __name__ == '__main__':
 
-	papers = initializeStructure()
+	papers, authors = initializeStructure()
 
 	textFolder = 'data/text/'
 
@@ -176,3 +185,6 @@ if __name__ == '__main__':
 
 		print(key)
 		print(value)
+
+
+
