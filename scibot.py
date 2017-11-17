@@ -26,13 +26,13 @@ def initializeStructure():
 		
 		l = line.split('\t')
 
-		folderName 	= l[0]
+		folder 		= l[0]
 		filename	= l[1]
 		pid			= l[2]
 		title		= l[3]
 
 		i  = {}
-		i['folderName']	= folderName
+		i['folder']		= folder
 		i['filename']	= filename
 		i['title']		= title
 
@@ -147,7 +147,7 @@ def initializeStructure():
 
 		if key in index:
 
-			papers[key]['folderName'] 	= index[key]['folderName']
+			papers[key]['folder'] 	= index[key]['folder']
 			papers[key]['filename']		= index[key]['filename']
 
 		if key in paperKeywords:
@@ -166,25 +166,63 @@ def initializeStructure():
 
 	return papers, authors
 
+# Taken from ResponseBotDemo.html by Meng Jiang
+def easy_tokenizer(text):
+
+	ret = []
+	for x in [',', '.', '--', '!', '?', ';', '(', ')', '/', '"']:
+		text = text.replace(x, ' '+x+' ')
+	for word in text.split(' '):
+		if word == '': 
+			continue
+		ret.append(word.lower())
+	return ret
 
 def entityMining(papers):
-	textFolder = 'data/text/'
-	stopwords = open('stopwords.txt', 'r')
-	for key, value in papers.items:
-		if 'foldername' in papers[key] and 'filename' in papers[key]:
-			papers[key]['data'] = []
-			dataFile = open(textFolder + papers[key]['foldername'] + '/' + papers[key]['filename'])
 
+	textFolder = 'data/text'
+
+	# Create stopwords list ---------------------------
+
+	stopwordsFile = open('stopwords.txt', 'r')
+	stopwords = set()
+
+	for line in stopwordsFile:
+		word = line.strip('\r\n').lower()
+		stopwords.add(word)
+
+	stopwordsFile.close()
+
+	for key, value in papers.items():
+		if 'folder' in papers[key] and 'filename' in papers[key]:
+			candidates = []
+			dataFile = open(textFolder + '/' + papers[key]['folder'] + '/' + papers[key]['filename'] + '.txt')
+			for line in dataFile:
+				text = line.strip('\r\n')
+				words = easy_tokenizer(text)
+				candidates.append(words)
+			papers[key]['words'] = {}
+			for words in candidates:
+				for word in set(words):
+					if word in stopwords or len(word) == 1 or word.isdigit():
+						continue
+					if word not in papers[key]['words']:
+						papers[key]['words'][word] = 0
+					papers[key]['words'][word] += 1
+
+			dataFile.close()
+	
 if __name__ == '__main__':
 
 	papers, authors = initializeStructure()
 
-	textFolder = 'data/text/'
+	entityMining(papers)
 
 	for key, value in papers.items():
 
-		print(key)
-		print(value)
+		if 'words' in papers[key]:
 
+			for word, support in papers[key]['words'].items():
 
+				print(word + ' ' + str(support))
 
