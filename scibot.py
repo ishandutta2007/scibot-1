@@ -12,6 +12,7 @@ import os
 from fim import apriori, fpgrowth
 
 # Task 1: Data preprocessing ===============================================
+
 def dataPreprocessing():
 
 	microsoftFolder = 'data/microsoft/'
@@ -158,6 +159,9 @@ def dataPreprocessing():
 	
 	return papers, authors
 
+# Task 2: Entity mining ====================================================
+# Candidate generation and quality assessment
+
 # Taken from ResponseBotDemo.html by Prof. Meng Jiang
 def easy_tokenizer(text):
 
@@ -173,8 +177,6 @@ def easy_tokenizer(text):
 
 	return ret
 
-# Task 2: Entity mining ====================================================
-# Candidate generation and quality assessment
 def entityMining(papers):
 
 	textFolder = 'data/text/'
@@ -210,32 +212,38 @@ def entityMining(papers):
 			dataFile.close()
 	
 # Task 3: Entity Typing ====================================================
+
 def entityTyping(papers):
 
 	pass
 
 
 # Task 4: Collaboration Discovery ==========================================
+
 def collaborationDiscovery(papers):
 
 	pass
 
 # Task 5: Problem-method association mining ================================
+
 def associationMining(papers):
 
 	pass
 
 # Task 6: Problem/method/author-to-conference classification ===============
+
 def pma2cClassification(papers):
 
 	pass
 
 # Task 7: Paper clustering =================================================
+
 def paperClustering(paper):
 
 	pass
 
 # Main Execution ===========================================================
+
 if __name__ == '__main__':
 
 	papers, authors = dataPreprocessing()
