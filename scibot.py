@@ -11,19 +11,18 @@ import sys
 import os
 from fim import apriori, fpgrowth
 
-def initializeStructure():
+# Task 1: Data preprocessing ===============================================
+def dataPreprocessing():
 
-	textFolder		= 'data/text/'
 	microsoftFolder = 'data/microsoft/'
 
-	# Open Index ----------------------------------------
+	# Open Index
 
 	indexFile = open(microsoftFolder + 'index.txt', 'r')
 
 	index = {}
 
 	for line in indexFile:
-		
 		l = line.split('\t')
 
 		folder 		= l[0]
@@ -32,18 +31,17 @@ def initializeStructure():
 		title		= l[3]
 
 		i  = {}
-		i['folder']		= folder
-		i['filename']	= filename
+		i['folder']		= folder + '/'
+		i['filename']	= filename + '.txt'
 		i['title']		= title
 
 		index[pid]		= i
 
 	indexFile.close()
 
-	# Open Papers File ---------------------------------
+	# Open papers file
 
 	'''
-
 	Note: Some Chinese characters appear in some of the
 	paper titles and they will display weird in the terminal.
 
@@ -54,7 +52,6 @@ def initializeStructure():
 	papers = {}
 
 	for line in papersFile:
-
 		l = line.split('\t')
 
 		pid 		= l[0]
@@ -65,24 +62,23 @@ def initializeStructure():
 		cid			= l[9]
 
 		paper = {}
-		paper['title_case'] = title_case
+		paper['title_case'] = title_case # case sensitive title
 		paper['title']		= title
 		paper['year']		= year
 		paper['conf']		= conf
-		paper['cid']		= cid
+		paper['cid']		= cid # conference id
 
 		papers[pid]			= paper
 
 	papersFile.close()
 
-	# Open Paper Keywords File ----------------------------
+	# Open paper keywords file
 
 	paperKeywordsFile = open(microsoftFolder + 'PaperKeywords.txt', 'r')
 
 	paperKeywords = {}
 
 	for line in paperKeywordsFile:
-
 		l = line.split('\t')
 
 		pid 		= l[0]
@@ -95,14 +91,13 @@ def initializeStructure():
 
 	paperKeywordsFile.close()
 
-	# Open Affiliations File -----------------------------
+	# Open affiliations file
 
 	affiliationsFile = open(microsoftFolder + 'PaperAuthorAffiliations.txt', 'r')
 
 	affiliations = {}
 
 	for line in affiliationsFile:
-
 		l = line.rstrip().split('\t')
 
 		pid = l[0]
@@ -124,14 +119,13 @@ def initializeStructure():
 
 	affiliationsFile.close()
 
-	# Open Authors File ------------------------------------
+	# Open authors file
 
 	authorsFile	= open(microsoftFolder + 'Authors.txt', 'r')
 
 	authors = {}
 
 	for line in authorsFile:
-
 		l = line.rstrip().split('\t')
 
 		aid = l[0]
@@ -141,49 +135,51 @@ def initializeStructure():
 
 	authorsFile.close()
 
-	# Consolidate Data into Papers ------------------------
+	# Consolidate data into papers object
 
 	for key, value in papers.items():
-
 		if key in index:
-
-			papers[key]['folder'] 	= index[key]['folder']
+			papers[key]['folder'] 		= index[key]['folder']
 			papers[key]['filename']		= index[key]['filename']
 
 		if key in paperKeywords:
-
 			papers[key]['keywords']		= paperKeywords[key]
 
 		if key in affiliations:
-
 			papers[key]['affiliations']	= affiliations[key]
 
+			'''
 			for affiliation in papers[key]['affiliations']:
 
 				if affiliation['aid'] in authors:
 
 					affiliation['aut'] = authors[affiliation['aid']]
-
+			'''
+	
 	return papers, authors
 
-# Taken from ResponseBotDemo.html by Meng Jiang
+# Taken from ResponseBotDemo.html by Prof. Meng Jiang
 def easy_tokenizer(text):
 
 	ret = []
 	for x in [',', '.', '--', '!', '?', ';', '(', ')', '/', '"']:
 		text = text.replace(x, ' '+x+' ')
+
 	for word in text.split(' '):
-		if word == '': 
+		if word == '':
 			continue
+
 		ret.append(word.lower())
+
 	return ret
 
+# Task 2: Entity mining ====================================================
+# Candidate generation and quality assessment
 def entityMining(papers):
 
-	textFolder = 'data/text'
+	textFolder = 'data/text/'
 
-	# Create stopwords list ---------------------------
-
+	# Create stopwords list
 	stopwordsFile = open('stopwords.txt', 'r')
 	stopwords = set()
 
@@ -193,10 +189,11 @@ def entityMining(papers):
 
 	stopwordsFile.close()
 
+	# Add words to paper object that pass criteria
 	for key, value in papers.items():
 		if 'folder' in papers[key] and 'filename' in papers[key]:
 			candidates = []
-			dataFile = open(textFolder + '/' + papers[key]['folder'] + '/' + papers[key]['filename'] + '.txt')
+			dataFile = open(textFolder + papers[key]['folder'] + papers[key]['filename'])
 			for line in dataFile:
 				text = line.strip('\r\n')
 				words = easy_tokenizer(text)
@@ -212,17 +209,51 @@ def entityMining(papers):
 
 			dataFile.close()
 	
+# Task 3: Entity Typing ====================================================
+def entityTyping(papers):
+
+	pass
+
+
+# Task 4: Collaboration Discovery ==========================================
+def collaborationDiscovery(papers):
+
+	pass
+
+# Task 5: Problem-method association mining ================================
+def associationMining(papers):
+
+	pass
+
+# Task 6: Problem/method/author-to-conference classification ===============
+def pma2cClassification(papers):
+
+	pass
+
+# Task 7: Paper clustering =================================================
+def paperClustering(paper):
+
+	pass
+
+# Main Execution ===========================================================
 if __name__ == '__main__':
 
-	papers, authors = initializeStructure()
+	papers, authors = dataPreprocessing()
 
 	entityMining(papers)
 
 	for key, value in papers.items():
-
 		if 'words' in papers[key]:
+			print(key)
+			
+			for key2, value2 in value.items():
+				print(key2)
+				print(value2)
 
+			break
+
+			'''
 			for word, support in papers[key]['words'].items():
 
 				print(word + ' ' + str(support))
-
+			'''
