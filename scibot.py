@@ -304,7 +304,7 @@ def collaborationDiscovery(papers):
 
 	patterns = fpgrowth(allAuthorsPerPaper, supp=-support)
 
-	for (pattern,support) in sorted(patterns,key=lambda x:-x[1]):
+	for pattern, support in sorted(patterns,key=lambda x:-x[1]):
 		if len(pattern) > 1:
 			frequentCollaborators.append((pattern, support))
 
