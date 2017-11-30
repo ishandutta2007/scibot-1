@@ -220,7 +220,7 @@ def entityMining(papers):
 					wordDict[word] += 1
 
 			# Compute bigrams
-			bigrams = {} # bigram's count, first word's count, second word's count, significance score
+			bigrams = {}
 			L = 0
 
 			for words in candidates:
@@ -230,9 +230,11 @@ def entityMining(papers):
 					if words[i] in wordDict and words[i+1] in wordDict:
 						bigram = words[i] + '_' + words[i+1]
 						if bigram not in bigrams:
+							# bigram's count, first word's count, second word's count, significance score
 							bigrams[bigram] = [0, wordDict[words[i]], wordDict[words[i+1]], 0.0]
 						bigrams[bigram][0] += 1
 
+			# Readjust bigrams scores
 			for bigram in bigrams:
 				bigrams[bigram][3] = (1.0 * bigrams[bigram][0] -  \
 					1.0 * bigrams[bigram][1] * bigrams[bigram][2]/L) / \
@@ -268,6 +270,7 @@ def entityMining(papers):
 
 			patterns = apriori(transactions, supp=-support)
 
+			# Create entity list
 			entity = []
 			for pattern, support in sorted(patterns, key=lambda x:-x[1]):
 				entity.append(pattern)
