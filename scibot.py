@@ -282,10 +282,92 @@ def entityMining(papers):
 	
 # Task 3: Entity Typing ====================================================
 
+def entityExtraction(papers):
+
+	textFolder = 'data/text/'
+	phrasesPerPaper = {}
+
+	for key, value in papers.items():
+		phrases = {}
+		if 'folder' in papers[key] and 'filename' in papers[key]:
+			dataFile = open(textFolder + papers[key]['folder'] + papers[key]['filename'])
+			for line in dataFile:
+				array = line.strip('\r\n').split(' ')
+				n = len(array)
+				if n < 5:
+					continue
+				for i in range(0, n-2):
+					if array[i] == '(' and array[i+2] == ')':
+						abbreviation = array[i+1]
+						l = len(abbreviation)
+						if l > 1 and abbreviation.isalpha():
+							if i >= l and abbreviation.isupper():
+								isValid = True
+								for j in range(0, l):
+									if not abbreviation[l-1-j].lower() == array[i-1-j][0].lower():
+										isValid = False
+									if isValid:
+										phrase = ''
+										for j in range(0, l):
+											phrase = array[i-1-j] + ' ' + phrase
+										phrase = phrase[0:-1].lower()
+										if phrase not in phrases:
+											phrases[phrase] = 0
+										phrases[phrase] += 1
+							if i >= l-1 and abbreviation[-1] == 's' and array[i-1][-1] == 's' and abbreviation[0:-1].isupper():
+								isValid = True
+								for j in range(1, l):
+									if not abbreviation[l-1-j].lower() == array[i-j][0].lower():
+										isValid = False
+									if isValid:
+										phrase = ''
+										for j in range(1, l):
+											phrase = array[i-j] + ' ' + phrase
+										phrase = phrase[0:-1].lower()
+										if phrase not in phrases:
+											phrases[phrase] = 0
+										phrases[phrase] += 1
+		phrasesPerPaper[key] = phrases
+
+	return phrasesPerPaper
+
 def entityTyping(papers):
+	
+	phrasesPerPaper = entityExtraction(papers)
 
-	pass
+	nType 		= 4
+	s_method 	= 'method algorithm model approach framework process scheme implementation procedure strategy architecture'
+	s_problem 	= 'problem technique process system application task evaluation tool paradigm benchmark software'
+	s_dataset 	= 'data dataset database'
+	s_metric 	= 'value score measure metric function parameter'
+	types 		= ['METHOD', 'PROBLEM', 'DATASET', 'METRIC']
+	wordsets 	= [set(s_method.split(' ')), set(s_problem.split(' ')), set(s_dataset.split(' ')), set(s_metric.split(' '))]
 
+	index, nIndex = [{}], 1
+
+	for key, value in phrasesPerPaper.items():
+		temp = ''
+		for phrase, count in phrasesPerPaper[key].items():
+			array = phrase.strip('\r\n').split('\t')
+			phrase = array[0]
+			words = phrase.split(' ')
+			n = len(words)
+			if n > nIndex:
+				for i in range(nIndex, n):
+					index.append({})
+				nIndex = n
+			temp = index[n-1]
+			if n > 1:
+				for i in range(0, n-1):
+					word = words[i]
+					if word not in temp:
+						temp[word] = {}
+					temp = temp[word]
+				word = words[n-1]
+			else:
+				word = words[0]
+			temp[word] = phrase
+		print(temp)
 
 # Task 4: Collaboration Discovery ==========================================
 
@@ -335,14 +417,18 @@ if __name__ == '__main__':
 	papers, authors = dataPreprocessing()
 
 	# entities = entityMining(papers)
-	frequentCollaborators = collaborationDiscovery(papers)
+	# frequentCollaborators = collaborationDiscovery(papers)
 
+	entityTyping(papers)
+
+ 	'''
 	i = 10
 	for frequentCollaborator in frequentCollaborators:
 		print(frequentCollaborator)
 		i -= 1
 		if i <= 0:
 			break
+	'''
 
 	'''for key, value in papers.items():
 		if 'words' in papers[key]:
