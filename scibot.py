@@ -269,7 +269,7 @@ def entityMining(papers):
 					i += 1
 				transactions.append(list(transaction))
 
-			patterns = apriori(transactions, supp=-support)
+			patterns = fpgrowth(transactions, supp=-support)
 
 			# Create entity list
 			entity = []
@@ -289,29 +289,26 @@ def entityTyping(papers):
 
 # Task 4: Collaboration Discovery ==========================================
 
-def collaborationDiscovery(authors):
-	'''
-	allAuthors = []
-	for key, value in authors.items():
-		author = set()
-		author.add(value.replace(" ", "_"))
-		allAuthors.append(author)
-	'''
+def collaborationDiscovery(papers):
+
+	support = 9
+	frequentCollaborators = []
+
 	allAuthorsPerPaper = []
 	for key, value in papers.items():
 		if 'affiliations' in papers[key]:
 			authorsPerPaper = set()
 			for affiliation in papers[key]['affiliations']:
-				print affiliation['aid']
-				authorsPerPaper.add(affiliation['aid'])
+				authorsPerPaper.add(authors[affiliation['aid']])
 			allAuthorsPerPaper.append(authorsPerPaper)
-	
-	patterns = apriori(allAuthorsPerPaper,supp=-3) # +: percentage -: absolute number
-	# output
-	print '-------- Apriori for Authors --------'
+
+	patterns = fpgrowth(allAuthorsPerPaper, supp=-support)
+
 	for (pattern,support) in sorted(patterns,key=lambda x:-x[1]):
-		print pattern,support
-	print 'Number of patterns:',len(patterns)
+		if len(pattern) > 1:
+			frequentCollaborators.append((pattern, support))
+
+	return frequentCollaborators
 
 # Task 5: Problem-method association mining ================================
 
@@ -338,7 +335,15 @@ if __name__ == '__main__':
 	papers, authors = dataPreprocessing()
 
 	# entities = entityMining(papers)
-	collaborationDiscovery(authors)
+	frequentCollaborators = collaborationDiscovery(papers)
+
+	i = 10
+	for frequentCollaborator in frequentCollaborators:
+		print(frequentCollaborator)
+		i -= 1
+		if i <= 0:
+			break
+
 	'''for key, value in papers.items():
 		if 'words' in papers[key]:
 			print(key)
