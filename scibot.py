@@ -220,9 +220,19 @@ def entityTyping(papers):
 
 # Task 4: Collaboration Discovery ==========================================
 
-def collaborationDiscovery(papers):
-
-	pass
+def collaborationDiscovery(authors):
+	allAuthors = []
+	for key, value in authors.items():
+		author = set()
+		author.add(value.replace(" ", "_"))
+		allAuthors.append(author)
+	
+	patterns = apriori(allAuthors,supp=-5) # +: percentage -: absolute number
+	# output
+	print '-------- Apriori for Authors --------'
+	for (pattern,support) in sorted(patterns,key=lambda x:-x[1]):
+		print pattern,support
+	print 'Number of patterns:',len(patterns)
 
 # Task 5: Problem-method association mining ================================
 
@@ -249,8 +259,8 @@ if __name__ == '__main__':
 	papers, authors = dataPreprocessing()
 
 	entityMining(papers)
-
-	for key, value in papers.items():
+	collaborationDiscovery(authors)
+	'''for key, value in papers.items():
 		if 'words' in papers[key]:
 			print(key)
 			
@@ -260,8 +270,9 @@ if __name__ == '__main__':
 
 			break
 
-			'''
+			
 			for word, support in papers[key]['words'].items():
 
 				print(word + ' ' + str(support))
-			'''
+			
+	'''
