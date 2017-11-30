@@ -9,6 +9,7 @@ Kevin Trinh (ktrinh1)
 
 import sys
 import os
+import itertools
 from fim import apriori, fpgrowth
 
 # Task 1: Data preprocessing ===============================================
@@ -286,13 +287,23 @@ def entityTyping(papers):
 # Task 4: Collaboration Discovery ==========================================
 
 def collaborationDiscovery(authors):
+	'''
 	allAuthors = []
 	for key, value in authors.items():
 		author = set()
 		author.add(value.replace(" ", "_"))
 		allAuthors.append(author)
+	'''
+	allAuthorsPerPaper = []
+	for key, value in papers.items():
+		if 'affiliations' in papers[key]:
+			authorsPerPaper = set()
+			for affiliation in papers[key]['affiliations']:
+				print affiliation['aid']
+				authorsPerPaper.add(affiliation['aid'])
+			allAuthorsPerPaper.append(authorsPerPaper)
 	
-	patterns = apriori(allAuthors,supp=-5) # +: percentage -: absolute number
+	patterns = apriori(allAuthorsPerPaper,supp=-3) # +: percentage -: absolute number
 	# output
 	print '-------- Apriori for Authors --------'
 	for (pattern,support) in sorted(patterns,key=lambda x:-x[1]):
@@ -323,7 +334,7 @@ if __name__ == '__main__':
 
 	papers, authors = dataPreprocessing()
 
-	entities = entityMining(papers)
+	# entities = entityMining(papers)
 	collaborationDiscovery(authors)
 	'''for key, value in papers.items():
 		if 'words' in papers[key]:
@@ -340,5 +351,3 @@ if __name__ == '__main__':
 
 				print(word + ' ' + str(support))	
 	'''
-	for entity in entities:
-		print(entity)
