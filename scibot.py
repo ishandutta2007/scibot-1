@@ -333,6 +333,8 @@ def entityExtraction(papers):
 
 def entityTyping(papers):
 	
+	textFolder = 'data/text/'
+
 	phrasesPerPaper = entityExtraction(papers)
 
 	nType 		= 4
@@ -367,7 +369,74 @@ def entityTyping(papers):
 			else:
 				word = words[0]
 			temp[word] = phrase
-		print(temp)
+
+	nContext = 5
+	phrases = {}
+	for key, value in papers.items():
+		if 'folder' in papers[key] and 'filename' in papers[key]:
+			dataFile = open(textFolder + papers[key]['folder'] + papers[key]['filename'])
+			for line in dataFile:
+				words = line.strip('\r\n').split(' ')
+				wordsLower = line.strip('\r\n').lower().split(' ')
+				l = len(words)
+				i = 0
+				while i < l:
+					isValid = False
+					for j in range(min(nIndex, l-i), 0, -1):
+						temp = index[j-1]
+						k = 0
+						while k < j and i+k < l:
+							tempword = wordsLower[i+k]
+							if tempword not in temp:
+								break
+							temp = temp[tempword]
+							k += 1
+						if k == j:
+							phrase = temp
+							if phrase not in phrases:
+								phrases[phrase] = [0,[[0 for t in range(0, nType)] for c in range(0, nContext)]]
+							phrases[phrase][0] += 1
+							for c in range(0, nContext):
+								if i-1-c >= 0:
+									trigger = wordsLower[i-1-c]
+									for t in range(0, nType):
+										if trigger in wordsets[t]:
+											phrases[phrase][1][c][t] += 1
+								if i+k+c < l:
+									trigger = wordsLower[i+k+c]
+									for t in range(0, nType):
+										if trigger in wordsets[t]:
+											phrases[phrase][1][c][t] += 1
+							isValid = True
+							break
+					if isValid:
+						i += j
+						continue
+					i += 1
+
+	s = 'ENTITY\tCOUNT'
+	for c in range(0, nContext):
+		s += '\tWINDOWSIZE' + str(c+1)
+	print(s)
+	for [phrase, [count, ctmatrix]] in sorted(phrases.items(), key=lambda x:-x[1][0]):
+		s = phrase + '\t' + str(count)
+		for c in range(0, nContext):
+			maxv, maxt = -1, -1
+			for t in range(0, nType):
+				v = ctmatrix[c][t]
+				if v > maxv:
+					maxv = v
+					maxt = t
+			if maxv == 0:
+				s += '\tN/A'
+			else:
+				s += '\t' + types[maxt]
+				for t in range(0, nType):
+					v = ctmatrix[c][t]
+					if v == 0:
+						continue
+					s += ' ' + types[t][0] + types[1][-1] + ':' + str(v)
+		print(s)
 
 # Task 4: Collaboration Discovery ==========================================
 
