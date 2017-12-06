@@ -12,7 +12,7 @@ import os
 import itertools
 from fim import apriori, fpgrowth
 
-# Task 1: Data preprocessing ===============================================
+# Task 1: Data preprocessing ================================================================================================
 
 def dataPreprocessing():
 
@@ -160,7 +160,7 @@ def dataPreprocessing():
 	
 	return papers, authors
 
-# Task 2: Entity mining ====================================================
+# Task 2: Entity mining =====================================================================================================
 # Candidate generation and quality assessment
 
 # Taken from ResponseBotDemo.html by Prof. Meng Jiang
@@ -280,7 +280,8 @@ def entityMining(papers):
 
 	return entities
 	
-# Task 3: Entity Typing ====================================================
+# Task 3: Entity Typing =====================================================================================================
+# This is an adaptation of Meng Jiangs code to fit our way of organizing the data so it's extremely similar
 
 def entityExtraction(papers):
 
@@ -438,7 +439,7 @@ def entityTyping(papers):
 					s += ' ' + types[t][0] + types[1][-1] + ':' + str(v)
 		print(s)
 
-# Task 4: Collaboration Discovery ==========================================
+# Task 4: Collaboration Discovery ===========================================================================================
 
 def collaborationDiscovery(papers):
 
@@ -461,25 +462,124 @@ def collaborationDiscovery(papers):
 
 	return frequentCollaborators
 
-# Task 5: Problem-method association mining ================================
+# Task 5: Problem-method association mining =================================================================================
 
 def associationMining(papers):
 
 	pass
 
-# Task 6: Problem/method/author-to-conference classification ===============
+# Task 6: Problem/method/author-to-conference classification ================================================================
+# This is an adaptation of Meng Jiangs code to fit our way of organizing the data so it's extremely similar
+
+def attributeExtraction(papers):
+	phrasesPerPaper = entityExtraction(papers)
+	attributePerPaper = {}
+	textFolder = 'data/text/'
+
+	
+	for key, value in phrasesPerPaper.items():
+		arr = phrasesPerPaper[key].strip('\r\n').split('\t')
+		phrase = arr[0]
+		words = phrase.split(' ')
+		n = len(words)
+		if n > nindex:
+			for i in range(nindex,n):
+				index.append({})
+			nindex = n
+		temp = index[n-1]
+		if n > 1:
+			for i in range(0,n-1):
+				word = words[i]
+				if not word in temp:
+					temp[word] = {}
+				temp = temp[word]
+			word = words[n-1]
+		else:
+			word = words[0]
+		temp[word] = phrase
+	for key, value in papers.items():
+		if 'folder' in papers[key] and 'filename' in papers[key]:
+			attributeset = set()
+			dataFile = open(textFolder + papers[key]['folder'] + papers[key]['filename'])
+			for line in dataFile:
+				words = line.strip('\r\n').split(' ')
+				wordslower = line.strip('\r\n').lower().split(' ')
+				l = len(words)
+				i = 0
+				while i < l:
+					isvalied = False
+					for j in range(min(nindex,l-i),0,-1):
+					temp = index[j-1]
+					k = 0
+					while k < j and i+k < l:
+						tempword = wordslower[i+k]
+						if not tempword in temp: break
+						temp = temp[tempword]
+						k += 1
+					if k == j:
+						phrase = temp
+						attributeset.add(phrase)
+						isvalid = True
+						break
+				if isvalid:
+					i += j
+					continue
+				i += 1
+		if len(attributeset) == 0: continue
+		s = ''
+		for attribute in sorted(attributeset):
+			s += ','+attribute
+		attributePerPaper[key] = s[1:]+'\n'
+
+return attributePerPaper
+
+def labelExtraction(papers):
+	attributePerPaper = attributeExtraction(papers)
+	labelPerPaper = {}
+	for key, value in attributePerPaper.items():
+		arr = attributePerPaper[key].strip('\r\n').split('\t')
+		if 'folder' in papers[key] and 'filename' in papers[key]:
+			conf = papers[key]['conf']
+		labelPerPaper[key] = conf + '\t' + arr + '\n'
+		
+	return labelPerPaper
+
+# copied from Meng Jiang's code
+def Entropy(n,values):
+	ret = 0.0
+	for value in values:
+		p_i = 1.0*value/n
+		if not p_i == 0:
+			ret += -1.0*p_i*log2(p_i)
+	p_i = 1.0*(n-sum(values))/n
+	if not p_i == 0:
+		ret += -1.0*p_i*log2(p_i)
+	return ret
+
+# copied from Meng Jiang's code
+def Gini(n,values):
+	ret = 1.0
+	for value in values:
+		p_i = 1.0*value/n
+		ret -= p_i*p_i
+	p_i = 1.0*(n-sum(values))/n
+	ret -= p_i*p_i
+	return ret
+
+
 
 def pma2cClassification(papers):
+	
 
 	pass
 
-# Task 7: Paper clustering =================================================
+# Task 7: Paper clustering ==================================================================================================
 
 def paperClustering(paper):
 
 	pass
 
-# Main Execution ===========================================================
+# Main Execution ============================================================================================================
 
 if __name__ == '__main__':
 
