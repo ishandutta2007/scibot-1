@@ -465,7 +465,103 @@ def collaborationDiscovery(papers):
 
 def associationMining(papers):
 
-	pass
+	textFolder = 'data/text/'
+	support = 9
+	confidence = 10
+	rules = {}
+
+	# Create stopwords list
+	stopwordsFile = open('stopwords.txt', 'r')
+	stopwords = set()
+
+	for line in stopwordsFile:
+		word = line.strip('\r\n').lower()
+		stopwords.add(word)
+
+	stopwordsFile.close()
+
+	transactions = []
+
+	for key, value in papers.items():
+		if 'folder' in papers[key] and 'filename' in papers[key]:
+
+			# Get candidates
+			candidates = []
+			dataFile = open(textFolder + papers[key]['folder'] + papers[key]['filename'])
+
+			for line in dataFile:
+				text = line.strip('\r\n')
+				words = easy_tokenizer(text)
+				candidates.append(words)
+
+			dataFile.close()
+
+			# Compute words dict
+			wordDict = {}
+
+			for words in candidates:
+				for word in words:
+					if word in stopwords or len(word) == 1 or word.isdigit():
+						continue
+					if word not in wordDict:
+						wordDict[word] = 0
+					wordDict[word] += 1
+
+			# Compute bigrams
+			bigrams = {}
+			L = 0
+
+			for words in candidates:
+				n = len(words)
+				L += n
+				for i in range(0, n-1):
+					if words[i] in wordDict and words[i+1] in wordDict:
+						bigram = words[i] + '_' + words[i+1]
+						if bigram not in bigrams:
+							# bigram's count, first word's count, second word's count, significance score
+							bigrams[bigram] = [0, wordDict[words[i]], wordDict[words[i+1]], 0.0]
+						bigrams[bigram][0] += 1
+
+			# Readjust bigrams scores
+			for bigram in bigrams:
+				bigrams[bigram][3] = (1.0 * bigrams[bigram][0] -  \
+					1.0 * bigrams[bigram][1] * bigrams[bigram][2]/L) / \
+					((1.0 * bigrams[bigram][0])**0.5)
+
+			# Compute transactions
+			bigramDict = {}
+
+			for bigram in bigrams:
+				if bigrams[bigram][0] > 1:
+					first, second = bigram.split('_')
+					if first not in bigramDict:
+						bigramDict[first] = set()
+					bigramDict[first].add(second)
+
+			# Compute quality entities
+			transactions = []
+			for words in candidates:
+				transaction = set() # set of words/bigrams
+				n = len(words)
+				i = 0
+				while i < n:
+					if words[i] in bigramDict and i+1 < n and words[i+1] in bigramDict[words[i]]:
+						transaction.add(words[i] + '_' + words[i+1])
+						i += 2
+						continue
+					if words[i] in stopwords or len(words[i]) == 1 or words[i].isdigit():
+						i += 1
+						continue
+					transaction.add(words[i])
+					i += 1
+				transactions.append(list(transaction))
+
+	rules = apriori(transactions, target='r', supp=support, conf=confidence, report='sc')
+	
+	print '--------- One-to-Many Assocation Rules ------------'
+	for left, right, support, confidence in sorted(rules, key=lambda x:x[0]):
+		print left, '-->', right, support, confidence
+	print 'Number of rules: ', len(rules)
 
 # Task 6: Problem/method/author-to-conference classification ===============
 
@@ -488,7 +584,10 @@ if __name__ == '__main__':
 	# entities = entityMining(papers)
 	# frequentCollaborators = collaborationDiscovery(papers)
 
-	entityTyping(papers)
+	# entityTyping(papers)
+
+	associationMining(papers)
+
 
  	'''
 	i = 10
