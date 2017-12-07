@@ -752,20 +752,25 @@ def decisionTree(papers):
 
 	return bestattributes
 
+# modified from Meng Jiang's code
 def naiveBayes(papers1):
 	positive = 'kdd' # SIGKDD Conference on Knowledge Discovery and Data Mining
+	bestattributeset = set()
 	bestattributes = decisionTree(papers1)
+	for attribute in bestattributes:
+		bestattributeset.add(attribute)
 
 	paper2label,paper2attributes,attribute2papers = {},{},{}
 	labels = labelExtraction(papers1)
 	for key, value in labels.items():
 		arr = labels[key].strip('\r\n').split('\t')
+		attributeset = set(arr[1].split(','))
+		selectedattributeset = bestattributeset & attributeset
 		paper = key
 		label = (arr[0] == positive)
 		paper2label[paper] = label
-		attributes = arr[1].split(',')
-		paper2attributes[paper] = attributes
-		for attribute in attributes:
+		paper2attributes[paper] = sorted(selectedattributeset)
+		for attribute in selectedattributeset:
 			if attribute not in attribute2papers:
 				attribute2papers[attribute] = []
 			attribute2papers[attribute].append(paper)
@@ -831,12 +836,15 @@ def naiveBayes(papers1):
 		print 'P(NotKDD|X) ~ P(X|NotKDD)P(NotKDD)',0.0001*int(10000.0*PNoPost)
 		print '--> Prediction:',(PYesPost > PNoPost)
 		print ''
+	return paper2attributes
 
 # Task 7: Paper clustering ==================================================================================================
 
-def paperClustering(paper):
-
-	pass
+def paperClustering(papers2attributes):
+	pcaList = []
+	for [paper, attribute] in paper2attributes.items():
+		if len(attributes) < 3: continue
+		attributeArray
 
 # Main Execution ============================================================================================================
 
@@ -850,7 +858,7 @@ if __name__ == '__main__':
 	# entityTyping(papers)
 
 	#associationMining(papers)
-	naiveBayes(papers)
+	papers2attributes = naiveBayes(papers)
 
  	'''
 	i = 10
