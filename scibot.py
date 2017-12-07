@@ -13,6 +13,7 @@ import itertools
 import random
 from fim import apriori, fpgrowth
 from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 import numpy as np
 from numpy import log2
 
@@ -757,8 +758,11 @@ def naiveBayes(papers1):
 	positive = 'kdd' # SIGKDD Conference on Knowledge Discovery and Data Mining
 	bestattributeset = set()
 	bestattributes = decisionTree(papers1)
+	attributeIndex = {}
 	for attribute in bestattributes:
 		bestattributeset.add(attribute)
+		index = len(attributeIndex.items())
+		attributeIndex[attribute] = index;
 
 	paper2label,paper2attributes,attribute2papers = {},{},{}
 	labels = labelExtraction(papers1)
@@ -836,15 +840,29 @@ def naiveBayes(papers1):
 		print 'P(NotKDD|X) ~ P(X|NotKDD)P(NotKDD)',0.0001*int(10000.0*PNoPost)
 		print '--> Prediction:',(PYesPost > PNoPost)
 		print ''
-	return paper2attributes
+
+	return bestattributeset, attributeIndex, paper2attributes
 
 # Task 7: Paper clustering ==================================================================================================
 
-def paperClustering(papers2attributes):
+def paperClustering(bestattributeset, attributeIndex, paper2attributes):
 	pcaList = []
-	for [paper, attribute] in paper2attributes.items():
-		if len(attributes) < 3: continue
-		attributeArray
+	for paper, attributes in paper2attributes.items():
+		if len(attributes) < 3:
+			continue
+		attributeArray = [0] * len(bestattributeset)
+		for attribute in attributes:
+			attributeArray[attributeIndex[attribute]] = 1
+		pcaList.append(attributeArray)
+
+	pca = PCA(n_components=5)
+	pca.fit(pcaList)
+	pcaList = pca.transform(pcaList)
+
+	kmeans = KMeans(n_clusters=4, random_state=0).fit(pcaList)
+
+	print kmeans.labels_
+	print kmeans.cluster_centers_
 
 # Main Execution ============================================================================================================
 
@@ -858,7 +876,9 @@ if __name__ == '__main__':
 	# entityTyping(papers)
 
 	#associationMining(papers)
-	papers2attributes = naiveBayes(papers)
+	bestattributeset, attributeIndex, paper2attributes = naiveBayes(papers)
+
+	paperClustering(bestattributeset, attributeIndex, paper2attributes)
 
  	'''
 	i = 10
