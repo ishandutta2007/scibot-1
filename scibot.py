@@ -425,6 +425,7 @@ def entityTyping(papers):
 		s += '\tWINDOWSIZE' + str(c+1)
 	print(s)
 	for [phrase, [count, ctmatrix]] in sorted(phrases.items(), key=lambda x:-x[1][0]):
+		if count < 600: continue
 		s = phrase + '\t' + str(count)
 		for c in range(0, nContext):
 			maxv, maxt = -1, -1
@@ -869,38 +870,31 @@ def paperClustering(bestattributeset, attributeIndex, paper2attributes):
 if __name__ == '__main__':
 
 	papers, authors = dataPreprocessing()
-
-	# entities = entityMining(papers)
-	# frequentCollaborators = collaborationDiscovery(papers)
-
-	# entityTyping(papers)
-
-	#associationMining(papers)
-	bestattributeset, attributeIndex, paper2attributes = naiveBayes(papers)
-
-	paperClustering(bestattributeset, attributeIndex, paper2attributes)
-
- 	'''
+	print "Entities ========================================================================\n"
+	entities = entityMining(papers)
+	for key, value in entities.items():
+		print entities[key]
+		
+	print "Frequent Collaboration ========================================================================\n"
+	
+	frequentCollaborators = collaborationDiscovery(papers)
 	i = 10
+	print len(frequentCollaborators)
 	for frequentCollaborator in frequentCollaborators:
 		print(frequentCollaborator)
 		i -= 1
 		if i <= 0:
 			break
-	'''
 
-	'''for key, value in papers.items():
-		if 'words' in papers[key]:
-			print(key)
-			
-			for key2, value2 in value.items():
-				print(key2)
-				print(value2)
+	print "Entity Typing ========================================================================\n"
+	entityTyping(papers)
 
-			break
+	print "Assocation Mining ========================================================================\n"
+	associationMining(papers)
 
-			
-			for word, support in papers[key]['words'].items():
+	print "Paper Classification ========================================================================\n"
+	bestattributeset, attributeIndex, paper2attributes = naiveBayes(papers)
 
-				print(word + ' ' + str(support))	
-	'''
+	print "Paper Clustering ========================================================================\n"
+	paperClustering(bestattributeset, attributeIndex, paper2attributes)
+
