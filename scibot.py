@@ -570,32 +570,35 @@ def associationMining(papers):
 # Task 6: Problem/method/author-to-conference classification ================================================================
 # This is an adaptation of Meng Jiangs code to fit our way of organizing the data so it's extremely similar
 
+# modified from Meng Jiang's code
 def attributeExtraction(papers):
 	phrasesPerPaper = entityExtraction(papers)
 	attributePerPaper = {}
 	textFolder = 'data/text/'
 
-	
+	index,nindex = [{}],1 # phrase's index
+
 	for key, value in phrasesPerPaper.items():
-		arr = phrasesPerPaper[key].strip('\r\n').split('\t')
-		phrase = arr[0]
-		words = phrase.split(' ')
-		n = len(words)
-		if n > nindex:
-			for i in range(nindex,n):
-				index.append({})
-			nindex = n
-		temp = index[n-1]
-		if n > 1:
-			for i in range(0,n-1):
-				word = words[i]
-				if not word in temp:
-					temp[word] = {}
-				temp = temp[word]
-			word = words[n-1]
-		else:
-			word = words[0]
-		temp[word] = phrase
+		for phrase1, count in phrasesPerPaper[key].items():
+			arr = phrase1.strip('\r\n').split('\t')
+			phrase = arr[0]
+			words = phrase.split(' ')
+			n = len(words)
+			if n > nindex:
+				for i in range(nindex,n):
+					index.append({})
+				nindex = n
+			temp = index[n-1]
+			if n > 1:
+				for i in range(0,n-1):
+					word = words[i]
+					if not word in temp:
+						temp[word] = {}
+					temp = temp[word]
+				word = words[n-1]
+			else:
+				word = words[0]
+			temp[word] = phrase
 	for key, value in papers.items():
 		if 'folder' in papers[key] and 'filename' in papers[key]:
 			attributeset = set()
@@ -606,7 +609,7 @@ def attributeExtraction(papers):
 				l = len(words)
 				i = 0
 				while i < l:
-					isvalied = False
+					isvalid = False
 					for j in range(min(nindex,l-i),0,-1):
 						temp = index[j-1]
 						k = 0
@@ -632,6 +635,7 @@ def attributeExtraction(papers):
 
 	return attributePerPaper
 
+# modified from Meng Jiang's code
 def labelExtraction(papers):
 	attributePerPaper = attributeExtraction(papers)
 	labelPerPaper = {}
@@ -639,7 +643,7 @@ def labelExtraction(papers):
 		arr = attributePerPaper[key].strip('\r\n').split('\t')
 		if 'folder' in papers[key] and 'filename' in papers[key]:
 			conf = papers[key]['conf']
-		labelPerPaper[key] = conf + '\t' + arr + '\n'
+		labelPerPaper[key] = conf + '\t' + arr[0] + '\n'
 		
 	return labelPerPaper
 
@@ -665,12 +669,85 @@ def Gini(n,values):
 	ret -= p_i*p_i
 	return ret
 
+# copied from Meng Jiang's code
+def Output(entry):
+	print entry[0],0.001*int(1000.0*entry[1][0]),0.001*int(1000.0*entry[1][1]),entry[2], \
+		0.001*int(1000.0*entry[2][0]/(entry[2][0]+entry[2][1])), \
+		0.001*int(1000.0*entry[2][2]/(entry[2][2]+entry[2][3]))
 
+# copied from Meng Jiang's code
+def OutputStr(entry):
+	print entry[0],entry[1][0],entry[1][1],entry[2]
 
-def pma2cClassification(papers):
+# modified from Meng Jiang's code
+def decisionTree(papers):
+	positive = 'kdd' # SIGKDD Conference on Knowledge Discovery and Data Mining
+	paper2label,paper2attributes,attribute2papers = {},{},{}
+	labels = labelExtraction(papers)
+	for key, value in labels.items():
+		arr = labels[key].strip('\r\n').split('\t')
+		paper = key
+		label = (arr[0] == positive)
+		paper2label[paper] = label
+		attributes = arr[1].split(',')
+		paper2attributes[paper] = attributes
+		for attribute in attributes:
+			if attribute not in attribute2papers:
+				attribute2papers[attribute] = []
+			attribute2papers[attribute].append(paper)
+
+	nY,nYpos = 0,0
+	for [paper,label] in paper2label.items():
+		nY += 1
+		if label: nYpos += 1
+	print '----- -----'
+	print 'All','KDD','NotKDD'
+	print nY,nYpos,nY-nYpos,0.001*int(1000.0*nYpos/nY)
+	print ''
+	HY = Entropy(nY,[nYpos])
+	GiniY = Gini(nY,[nYpos])
+
+	attribute_metrics = []
+	for [attribute,papers] in attribute2papers.items():
+		nXyesY = len(papers)
+		nXnoY = nY-nXyesY
+		nXyesYpos = 0
+		for paper in papers:
+			label = paper2label[paper]
+			if label: nXyesYpos += 1
+		nXnoYpos = nYpos-nXyesYpos
+		HXyesY = 1.0*nXyesY/nY * Entropy(nXyesY,[nXyesYpos])
+		HXnoY = 1.0*nXnoY/nY * Entropy(nXnoY,[nXnoYpos])
+		InfoGain = HY-(HXyesY+HXnoY)
+
+		GiniXyesY = 1.0*nXyesY/nY * Gini(nXyesY,[nXyesYpos])
+		GiniXnoY = 1.0*nXnoY/nY * Gini(nXnoY,[nXnoYpos])
+		DeltaGini = GiniY-(GiniXyesY+GiniXnoY)
+		
+		attribute_metrics.append([attribute,[InfoGain,DeltaGini],[nXyesYpos,nXyesY-nXyesYpos,nXnoYpos,nXnoY-nXnoYpos]])
+
+	bestattributeset = set()
+
+	print '----- First Feature to Select in ID3: Information Gain -----'
+	OutputStr(['Attribute',['InfoGain','DeltaGini'],['HasWord & KDD','HasWord & NotKDD','NoWord & KDD','NoWord & NotKDD']])
+	sorted_attribute_metrics = sorted(attribute_metrics,key=lambda x:-x[1][0])
+	for i in range(0,5):
+		Output(sorted_attribute_metrics[i])
+		bestattributeset.add(sorted_attribute_metrics[i][0])
+	print ''
+
+	print '----- First Feature to Select in CART: Delta Gini index -----'
+	OutputStr(['Attribute',['InfoGain','DeltaGini'],['HasWord & KDD','HasWord & NotKDD','NoWord & KDD','NoWord & NotKDD']])
+	sorted_attribute_metrics = sorted(attribute_metrics,key=lambda x:-x[1][1])
+	for i in range(0,5):
+		Output(sorted_attribute_metrics[i])
+		bestattributeset.add(sorted_attribute_metrics[i][0])
+	print ''
 	
-
-	pass
+	fw = open('bestattributes.txt','w')
+	for attribute in sorted(bestattributeset):
+		fw.write(attribute+'\n')
+	fw.close()
 
 # Task 7: Paper clustering ==================================================================================================
 
@@ -689,8 +766,8 @@ if __name__ == '__main__':
 
 	# entityTyping(papers)
 
-	associationMining(papers)
-
+	#associationMining(papers)
+	decisionTree(papers)
 
  	'''
 	i = 10
