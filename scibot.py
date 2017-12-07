@@ -11,6 +11,8 @@ import sys
 import os
 import itertools
 from fim import apriori, fpgrowth
+from sklearn.cluster import KMeans
+import numpy as np
 
 # Task 1: Data preprocessing ================================================================================================
 
@@ -463,6 +465,7 @@ def collaborationDiscovery(papers):
 	return frequentCollaborators
 
 # Task 5: Problem-method association mining =================================================================================
+# This is an adaptation of Meng Jiangs code to fit our way of organizing the data so it's extremely similar
 
 def associationMining(papers):
 
@@ -605,29 +608,29 @@ def attributeExtraction(papers):
 				while i < l:
 					isvalied = False
 					for j in range(min(nindex,l-i),0,-1):
-					temp = index[j-1]
-					k = 0
-					while k < j and i+k < l:
-						tempword = wordslower[i+k]
-						if not tempword in temp: break
-						temp = temp[tempword]
-						k += 1
-					if k == j:
-						phrase = temp
-						attributeset.add(phrase)
-						isvalid = True
-						break
-				if isvalid:
-					i += j
-					continue
-				i += 1
-		if len(attributeset) == 0: continue
-		s = ''
-		for attribute in sorted(attributeset):
-			s += ','+attribute
-		attributePerPaper[key] = s[1:]+'\n'
+						temp = index[j-1]
+						k = 0
+						while k < j and i+k < l:
+							tempword = wordslower[i+k]
+							if not tempword in temp: break
+							temp = temp[tempword]
+							k += 1
+						if k == j:
+							phrase = temp
+							attributeset.add(phrase)
+							isvalid = True
+							break
+					if isvalid:
+						i += j
+						continue
+					i += 1
+			if len(attributeset) == 0: continue
+			s = ''
+			for attribute in sorted(attributeset):
+				s += ','+attribute
+			attributePerPaper[key] = s[1:]+'\n'
 
-return attributePerPaper
+	return attributePerPaper
 
 def labelExtraction(papers):
 	attributePerPaper = attributeExtraction(papers)
