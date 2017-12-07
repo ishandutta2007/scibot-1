@@ -744,6 +744,11 @@ def decisionTree(papers):
 		bestattributeset.add(sorted_attribute_metrics[i][0])
 	print ''
 	
+	bestattributes = []
+	for attribute in sorted(bestattributeset):
+		bestattributes.append(attribute)
+
+	return bestattributes
 
 # Task 7: Paper clustering ==================================================================================================
 
