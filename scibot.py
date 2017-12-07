@@ -744,10 +744,6 @@ def decisionTree(papers):
 		bestattributeset.add(sorted_attribute_metrics[i][0])
 	print ''
 	
-	fw = open('bestattributes.txt','w')
-	for attribute in sorted(bestattributeset):
-		fw.write(attribute+'\n')
-	fw.close()
 
 # Task 7: Paper clustering ==================================================================================================
 
