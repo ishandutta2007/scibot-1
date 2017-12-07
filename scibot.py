@@ -10,9 +10,11 @@ Kevin Trinh (ktrinh1)
 import sys
 import os
 import itertools
+import random
 from fim import apriori, fpgrowth
 from sklearn.cluster import KMeans
 import numpy as np
+from numpy import log2
 
 # Task 1: Data preprocessing ================================================================================================
 
@@ -750,6 +752,86 @@ def decisionTree(papers):
 
 	return bestattributes
 
+def naiveBayes(papers1):
+	positive = 'kdd' # SIGKDD Conference on Knowledge Discovery and Data Mining
+	bestattributes = decisionTree(papers1)
+
+	paper2label,paper2attributes,attribute2papers = {},{},{}
+	labels = labelExtraction(papers1)
+	for key, value in labels.items():
+		arr = labels[key].strip('\r\n').split('\t')
+		paper = key
+		label = (arr[0] == positive)
+		paper2label[paper] = label
+		attributes = arr[1].split(',')
+		paper2attributes[paper] = attributes
+		for attribute in attributes:
+			if attribute not in attribute2papers:
+				attribute2papers[attribute] = []
+			attribute2papers[attribute].append(paper)
+
+	for [paper,attributes] in paper2attributes.items():
+		print paper,attributes
+
+	nY,nYpos = 0,0
+	for [paper,label] in paper2label.items():
+		nY += 1
+		if label: nYpos += 1
+	print ''
+	print '----- -----'
+	print 'All','KDD','NotKDD'
+	print nY,nYpos,nY-nYpos,0.001*int(1000.0*nYpos/nY)
+	print '----- Prior Probability -----'
+	PYesPrior = 1.0*nYpos/nY
+	PNoPrior = 1.0*(nY-nYpos)/nY
+	print 'P(KDD) = ',0.001*int(1000.0*PYesPrior)
+	print 'P(NotKDD) = ',0.001*int(1000.0*PNoPrior)
+	print ''
+
+	allpapers = paper2label.keys()
+	random.shuffle(allpapers)
+	for i in range(0,5):
+		paper = allpapers[i]
+		print '----- Paper ',i,':',paper,'-->',paper2label[paper],' -----'
+		attributes = paper2attributes[paper]
+		print '----- Likelihood -----'
+		PYesLikelihoodAll = 1.0
+		PNoLikelihoodAll = 1.0
+		for [attribute,papers] in attribute2papers.items():
+			if attribute in attributes:
+				# P(word=yes|KDD), P(word=yes|NotKDD)
+				nYesLikelihood = 0
+				nNoLikelihood = 0
+				for [paper,label] in paper2label.items():
+					if paper in papers:
+						if label: nYesLikelihood += 1
+						else: nNoLikelihood += 1
+				PYesLikelihood = 1.0*nYesLikelihood/nYpos
+				PNoLikelihood = 1.0*nNoLikelihood/(nY-nYpos)
+				PYesLikelihoodAll *= PYesLikelihood
+				PNoLikelihoodAll *= PNoLikelihood
+			else:
+				# P(word=no|KDD), P(word=no|NotKDD)
+				nYesLikelihood = 0
+				nNoLikelihood = 0
+				for [paper,label] in paper2label.items():
+					if not paper in papers:
+						if label: nYesLikelihood += 1
+						else: nNoLikelihood += 1
+				PYesLikelihood = 1.0*nYesLikelihood/nYpos
+				PNoLikelihood = 1.0*nNoLikelihood/(nY-nYpos)
+				PYesLikelihoodAll *= PYesLikelihood
+				PNoLikelihoodAll *= PNoLikelihood
+		print 'P(X|KDD) = ',0.001*int(1000.0*PYesLikelihoodAll)
+		print 'P(X|NotKDD) = ',0.001*int(1000.0*PNoLikelihoodAll)
+		print '----- Posteriori Probability -----'
+		PYesPost = PYesPrior*PYesLikelihoodAll
+		PNoPost = PNoPrior*PNoLikelihoodAll
+		print 'P(KDD|X) ~ P(X|KDD)P(KDD)',0.0001*int(10000.0*PYesPost)
+		print 'P(NotKDD|X) ~ P(X|NotKDD)P(NotKDD)',0.0001*int(10000.0*PNoPost)
+		print '--> Prediction:',(PYesPost > PNoPost)
+		print ''
+
 # Task 7: Paper clustering ==================================================================================================
 
 def paperClustering(paper):
@@ -768,7 +850,7 @@ if __name__ == '__main__':
 	# entityTyping(papers)
 
 	#associationMining(papers)
-	decisionTree(papers)
+	naiveBayes(papers)
 
  	'''
 	i = 10
